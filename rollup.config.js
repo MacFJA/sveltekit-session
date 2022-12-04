@@ -14,8 +14,8 @@ const defaultConfig = {
 const moduleConfig = (name) => ({
   input: `src/${name}.ts`,
   output: [
-    { file: `dist/${name}.mjs`, format: "es", plugins: [generateDtsBundle()] },
-    { file: `dist/${name}.cjs`, format: "cjs" },
+    { file: `${name}.mjs`, format: "es", plugins: [generateDtsBundle()] },
+    { file: `${name}.cjs`, format: "cjs" },
   ],
 });
 

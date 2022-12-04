@@ -1,5 +1,7 @@
 node_modules
-/dist
+/*.cjs
+/*.mjs
+/*.d.ts
 /tests
 
 # Ignore files for PNPM, NPM and YARN

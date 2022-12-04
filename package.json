@@ -1,23 +1,23 @@
 {
   "name": "@macfja/sveltekit-session",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Session management for SvelteKit",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "svelte": "dist/index.mjs",
+  "main": "./index.cjs",
+  "module": "./index.mjs",
+  "svelte": "./index.mjs",
   "exports": {
     ".": {
       "import": [
-        "./dist/index.mjs",
-        "./dist/node.mjs",
-        "./dist/redis.mjs",
-        "./dist/utils.mjs"
+        "./index.mjs",
+        "./node.mjs",
+        "./redis.mjs",
+        "./utils.mjs"
       ],
       "require": [
-        "./dist/index.cjs",
-        "./dist/node.cjs",
-        "./dist/redis.cjs",
-        "./dist/utils.cjs"
+        "./index.cjs",
+        "./node.cjs",
+        "./redis.cjs",
+        "./utils.cjs"
       ]
     },
     "./package.json": "./package.json"
@@ -62,7 +62,12 @@
     "@sveltejs/kit": "next"
   },
   "files": [
-    "dist/",
+    "./index.cjs",
+    "./utils.cjs",
+    "./redis.cjs",
+    "./node.cjs",
+    "./*.mjs",
+    "./*.d.ts",
     "LICENSE.md",
     "README.md"
   ],
