@@ -146,11 +146,10 @@ export async function configuredServerHook(
     cookies.forEach((cookie) =>
       response.headers.append(
         "set-cookie",
-        event.cookies.serialize(
-          cookie.identifier,
-          cookie.data,
-          cookie.options ?? {}
-        )
+        event.cookies.serialize(cookie.identifier, cookie.data, {
+          path: "/",
+          ...cookie.options,
+        })
       )
     );
     headers.forEach((header) =>
@@ -187,6 +186,22 @@ export function serverHook(
   );
 
   return configuredServerHook(input, sessionManager);
+}
+
+export function sessionHook(
+  exchanger: SvelteKitExchangerMode = "cookie",
+  storage: SessionStorageInterface = serverMemoryStorage,
+  serializer: SessionSerializerInterface = devalueSerializer
+): Handle {
+  return function (input: Parameters<Handle>[0]): ReturnType<Handle> {
+    return serverHook(input, exchanger, storage, serializer);
+  };
+}
+
+export function configuredSessionHook(sessionManager: SessionManager): Handle {
+  return function (input: Parameters<Handle>[0]): ReturnType<Handle> {
+    return configuredServerHook(input, sessionManager);
+  };
 }
 
 export const serverLoad = ({

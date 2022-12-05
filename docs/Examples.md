@@ -150,14 +150,26 @@ _(This storage also enable the automatic session purge)_
 
 ```ts
 import type { Handle } from "@sveltejs/kit";
-import { serverHook } from "@macfja/sveltekit-session";
+import { sessionHook } from "@macfja/sveltekit-session";
 import { RedisStorage } from "@macfja/sveltekit-session/redis";
 
-export const handle: Handle = (input) => {
-  return serverHook(
-    input,
-    "cookie",
-    new RedisStorage({ url: "redis://localhost:6379" }, "sess_", 7200)
-  );
-};
+export const handle: Handle = sessionHook(
+  "cookie",
+  new RedisStorage({ url: "redis://localhost:6379" }, "sess_", 7200)
+);
+```
+
+## Chaining Server hooks
+
+If you need to use several server hooks, you can use `sequence` (from `import {sequence} from "@sveltejs/kit/hooks"`) like this:
+
+```ts
+// src/hooks.server.ts
+import type { Handle } from "@sveltejs/kit";
+import { sequence } from "@sveltejs/kit/hooks";
+import { sessionHook } from "@macfja/sveltekit-session";
+
+export const handle: Handle = sequence(
+  sessionHook("cookie") /* another server hook */
+);
 ```
