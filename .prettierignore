@@ -2,6 +2,7 @@ node_modules
 /*.cjs
 /*.mjs
 /*.d.ts
+/tests/.svelte-kit
 
 # Ignore files for PNPM, NPM and YARN
 pnpm-lock.yaml

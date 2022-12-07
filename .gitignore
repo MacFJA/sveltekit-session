@@ -1,9 +1,5 @@
-.DS_Store
 node_modules
-/build
-/dist
-/.svelte-kit
-/package
 /*.mjs
 /*.cjs
 /*.d.ts
+/pnpm-lock.yaml
