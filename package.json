@@ -1,6 +1,6 @@
 {
   "name": "@macfja/sveltekit-session",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Session management for SvelteKit",
   "main": "./index.cjs",
   "module": "./index.mjs",
@@ -46,7 +46,7 @@
     "svelte": "^3.44.0",
     "tslib": "^2.3.1",
     "typescript": "^4.7.4",
-    "vite": "^3.1.0"
+    "vite": "^3.1.0 || ^4.0.0"
   },
   "type": "module",
   "dependencies": {
@@ -76,6 +76,8 @@
     "session",
     "svelte",
     "sveltekit",
-    "sveltejs"
+    "sveltejs",
+    "cookie",
+    "redis"
   ]
 }
