@@ -1,6 +1,6 @@
 {
   "name": "@macfja/sveltekit-session",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Session management for SvelteKit",
   "main": "./index.cjs",
   "module": "./index.mjs",

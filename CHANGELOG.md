@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5]
+
+### Fixed
+
+- Default cookie path to `/`
+
+### Added
+
+- Add parameter to configure all cookies everywhere
+
+### Changed
+
+- Make `ServerCookieStorage` expirable
+
 ## [1.0.4]
 
 ### Fixed

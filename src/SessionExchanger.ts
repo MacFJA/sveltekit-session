@@ -3,6 +3,8 @@
 import randomToken from "random-token";
 import type { RequestEvent } from "@sveltejs/kit";
 import { eventDispatcher } from "./utils";
+import { CookieSerializeOptions } from "cookie";
+import type { CookieEvent } from "./utils";
 
 export interface SessionExchangerInterface {
   getIdentifier(): string | null;
@@ -25,16 +27,19 @@ export class SvelteKitExchanger extends AbstractSessionExchanger {
   private readonly dataName: string;
   private readonly mode: SvelteKitExchangerMode = "cookie";
   private requestEvent: RequestEvent | undefined;
+  private readonly cookieOptions: CookieSerializeOptions;
 
   constructor(
     dataName = "SKSESSID",
     mode: SvelteKitExchangerMode = "cookie",
-    requestEvent?: RequestEvent
+    requestEvent?: RequestEvent,
+    cookieOptions: CookieSerializeOptions = { path: "/" }
   ) {
     super();
     this.dataName = dataName;
     this.mode = mode;
     this.requestEvent = requestEvent;
+    this.cookieOptions = cookieOptions;
   }
 
   setRequestEvent(requestEvent: RequestEvent): void {
@@ -61,7 +66,8 @@ export class SvelteKitExchanger extends AbstractSessionExchanger {
       eventDispatcher.dispatchEvent("setCookie", this, {
         identifier: this.dataName,
         data: identifier,
-      });
+        options: this.cookieOptions,
+      } as CookieEvent);
     } else {
       eventDispatcher.dispatchEvent("setHeader", this, {
         identifier: this.dataName,
@@ -77,7 +83,9 @@ export class SvelteKitExchanger extends AbstractSessionExchanger {
         identifier,
         data: "",
         options: {
+          ...this.cookieOptions,
           expires: new Date("1970-01-01"),
+          maxAge: 0,
         },
       });
     }

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import cookie from "cookie";
-import { eventDispatcher } from "./utils";
+import cookie, { CookieSerializeOptions } from "cookie";
+import { CookieEvent, eventDispatcher } from "./utils";
 import type {
   RedisClientOptions,
   RedisClientType,
@@ -9,6 +9,8 @@ import type {
   RedisModules,
   RedisScripts,
 } from "@redis/client";
+
+const ONE_WEEK = 3600 * 24 * 7;
 
 export interface SessionStorageInterface {
   write(identifier: string, data: string): Promise<void>;
@@ -95,11 +97,19 @@ export class ServerMemoryStorage extends AbstractSessionStorage {
   }
 }
 
-export class ServerCookieStorage extends AbstractSessionStorage {
+export class ServerCookieStorage
+  extends AbstractSessionStorage
+  implements ExpirableSessionStorageInterface
+{
   private requestCookieHeader = "";
+  private readonly defaultOptions: CookieSerializeOptions;
 
-  constructor(requestCookieHeader?: string) {
+  constructor(
+    requestCookieHeader?: string,
+    defaultOptions: CookieSerializeOptions = { maxAge: ONE_WEEK, path: "/" }
+  ) {
     super();
+    this.defaultOptions = defaultOptions;
     this.requestCookieHeader = requestCookieHeader ?? "";
   }
 
@@ -112,9 +122,11 @@ export class ServerCookieStorage extends AbstractSessionStorage {
       identifier,
       data: "",
       options: {
+        ...this.defaultOptions,
         expires: new Date("1970-01-01"),
+        maxAge: 0,
       },
-    });
+    } as CookieEvent);
   }
 
   async read(identifier: string): Promise<string | null> {
@@ -123,7 +135,15 @@ export class ServerCookieStorage extends AbstractSessionStorage {
   }
 
   async write(identifier: string, data: string): Promise<void> {
-    eventDispatcher.dispatchEvent("setCookie", this, { identifier, data });
+    eventDispatcher.dispatchEvent("setCookie", this, {
+      identifier,
+      data,
+      options: this.defaultOptions,
+    } as CookieEvent);
+  }
+
+  gc(): void {
+    // Do nothing
   }
 }
 

@@ -13,7 +13,7 @@ import {
   devalueSerializer,
   type SessionSerializerInterface,
 } from "./SessionSerializer";
-import { eventDispatcher, type EventSource } from "./utils";
+import { eventDispatcher, type EventSource, type CookieEvent } from "./utils";
 import type { Handle, Load } from "@sveltejs/kit";
 import type { CookieSerializeOptions } from "cookie";
 
@@ -95,11 +95,7 @@ export async function configuredServerHook(
 ): Promise<Response> {
   const { event, resolve } = input;
   const headers: Array<{ identifier: string; data: string }> = [];
-  const cookies: Array<{
-    identifier: string;
-    data: string;
-    options?: CookieSerializeOptions;
-  }> = [];
+  const cookies: Array<CookieEvent> = [];
 
   function setCookies(
     name: string,
@@ -156,7 +152,7 @@ export async function configuredServerHook(
       response.headers.append(header.identifier, header.data)
     );
     if (headers.length > 0 || cookies.length > 0) {
-      // The response contains personal, need to flag the response as private for the cache
+      // The response contains personal data, need to flag the response as private for the cache
       // Also add a custom header to help cache service.
 
       let cacheControl = (response.headers.get("cache-control") ?? "").split(

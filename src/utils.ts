@@ -1,3 +1,5 @@
+import { CookieSerializeOptions } from "cookie";
+
 export type EventSource = unknown;
 
 export type EventRunner = (
@@ -137,3 +139,9 @@ export class EventDispatcher implements EventDispatcherInterface {
 }
 
 export const eventDispatcher: EventDispatcherInterface = new EventDispatcher();
+
+export type CookieEvent = {
+  identifier: string;
+  data: string;
+  options?: CookieSerializeOptions;
+};
