@@ -5,11 +5,15 @@ import { generateDtsBundle } from "rollup-plugin-dts-bundle-generator";
 import pkg from "./package.json" assert { type: "json" };
 
 const defaultConfig = {
-  external: [...Object.keys(pkg.dependencies), "./utils", "@redis/client"],
+  external: [...Object.keys(pkg.dependencies), "@redis/client"],
   treeshake: {
     moduleSideEffects: "no-external",
   },
-  plugins: [typescript({ sourceMap: false }), commonjs(), nodeResolve()],
+  plugins: [
+    typescript({ sourceMap: false, target: "es2015" }),
+    commonjs(),
+    nodeResolve(),
+  ],
 };
 const moduleConfig = (name) => ({
   input: `src/${name}.ts`,
@@ -31,9 +35,5 @@ export default [
   {
     ...defaultConfig,
     ...moduleConfig("redis"),
-  },
-  {
-    ...defaultConfig,
-    ...moduleConfig("utils"),
   },
 ];

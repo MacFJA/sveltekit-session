@@ -1,6 +1,6 @@
 import type { SessionStorageInterface } from "./SessionStorage";
 import type { SessionSerializerInterface } from "./SessionSerializer";
-import { eventDispatcher } from "./utils";
+import type { EventDispatcherInterface } from "./utils";
 
 export class Session {
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -12,7 +12,8 @@ export class Session {
   constructor(
     identifier: string,
     storage: SessionStorageInterface,
-    serializer: SessionSerializerInterface
+    serializer: SessionSerializerInterface,
+    eventDispatcher: EventDispatcherInterface
   ) {
     this.identifier = identifier;
     this.storage = storage;

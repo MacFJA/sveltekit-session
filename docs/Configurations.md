@@ -61,9 +61,11 @@ export declare class SessionManager {
   constructor(
     defaultStorage?: SessionStorageInterface,
     defaultSerializer?: SessionSerializerInterface,
-    defaultExchanger?: SessionExchangerInterface
+    defaultExchanger?: SessionExchangerInterface,
+    eventDispatcher?: EventDispatcherInterface
   );
   get(options?: SessionOptions): Session;
+  dispatcher(): EventDispatcherInterface;
 }
 ```
 
@@ -71,15 +73,20 @@ export declare class SessionManager {
 
 #### `constructor` method parameters
 
-| Name               | Type                         | Default                                                                                                         | Description                                                                                                |
-| ------------------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `defaultStorage`   | `SessionStorageInterface`    | `serverMemoryStorage`, a shared instance of `ServerMemoryStorage` class (sessions are saved into NodeJS memory) | The class instance responsible to store the session data.                                                  |
-| `defaultExchanger` | `SessionExchangerInterface`  | a new instance of `SvelteKitExchanger`                                                                          | The class instance responsible to exchange the identifier of the session between the server and the front. |
-| `serializer`       | `SessionSerializerInterface` | `devalueSerializer`, a serializer based on `devalue` used in SvelteKit                                          | The class instance responsible to transform from and to storage.                                           |
+| Name                | Type                         | Default                                                                                                         | Description                                                                                                |
+| ------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `defaultStorage`    | `SessionStorageInterface`    | `serverMemoryStorage`, a shared instance of `ServerMemoryStorage` class (sessions are saved into NodeJS memory) | The class instance responsible to store the session data.                                                  |
+| `defaultSerializer` | `SessionSerializerInterface` | `devalueSerializer`, a serializer based on `devalue` used in SvelteKit                                          | The class instance responsible to transform from and to storage.                                           |
+| `defaultExchanger`  | `SessionExchangerInterface`  | a new instance of `SvelteKitExchanger`                                                                          | The class instance responsible to exchange the identifier of the session between the server and the front. |
+| `eventDispatcher`   | `EventDispatcherInterface`   | The main `EventDispatcher` (`EventDispatcher.main()`)                                                           | The class instance responsible to send event message                                                       |
 
 #### `get` method
 
 The function retrieve the session of current user according to its `options` parameter (or to the class instance default)
+
+#### `dispatcher` method
+
+Return the `EventDispatcherInterface` instance used by the `SessionManager`
 
 ## `Session` class
 
@@ -88,7 +95,8 @@ export declare class Session {
   constructor(
     identifier: string,
     storage: SessionStorageInterface,
-    serializer: SessionSerializerInterface
+    serializer: SessionSerializerInterface,
+    eventDispatcher: EventDispatcherInterface
   );
   start(): Promise<void>;
   getIdentifier(): string;

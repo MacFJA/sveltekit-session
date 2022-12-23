@@ -2,7 +2,7 @@
 // @ts-ignore
 import randomToken from "random-token";
 import type { RequestEvent } from "@sveltejs/kit";
-import { eventDispatcher } from "./utils";
+import type { EventDispatcherAware, EventDispatcherInterface } from "./utils";
 import { CookieSerializeOptions } from "cookie";
 import type { CookieEvent } from "./utils";
 
@@ -23,23 +23,36 @@ abstract class AbstractSessionExchanger implements SessionExchangerInterface {
 
 export type SvelteKitExchangerMode = "cookie" | "header" | "query";
 
-export class SvelteKitExchanger extends AbstractSessionExchanger {
+export class SvelteKitExchanger
+  extends AbstractSessionExchanger
+  implements EventDispatcherAware
+{
   private readonly dataName: string;
   private readonly mode: SvelteKitExchangerMode = "cookie";
   private requestEvent: RequestEvent | undefined;
   private readonly cookieOptions: CookieSerializeOptions;
+  private eventDispatcher: EventDispatcherInterface | undefined;
 
   constructor(
     dataName = "SKSESSID",
     mode: SvelteKitExchangerMode = "cookie",
     requestEvent?: RequestEvent,
-    cookieOptions: CookieSerializeOptions = { path: "/" }
+    cookieOptions: CookieSerializeOptions = { path: "/" },
+    eventDispatcher?: EventDispatcherInterface
   ) {
     super();
     this.dataName = dataName;
     this.mode = mode;
     this.requestEvent = requestEvent;
     this.cookieOptions = cookieOptions;
+    this.eventDispatcher = eventDispatcher;
+  }
+
+  getDispatcher(): EventDispatcherInterface | undefined {
+    return this.eventDispatcher;
+  }
+  setDispatcher(eventDispatcher: EventDispatcherInterface): void {
+    this.eventDispatcher = eventDispatcher;
   }
 
   setRequestEvent(requestEvent: RequestEvent): void {
@@ -63,13 +76,13 @@ export class SvelteKitExchanger extends AbstractSessionExchanger {
   createIdentifier(): string {
     const identifier = super.createIdentifier();
     if (this.mode === "cookie") {
-      eventDispatcher.dispatchEvent("setCookie", this, {
+      this.eventDispatcher?.dispatchEvent("setCookie", this, {
         identifier: this.dataName,
         data: identifier,
         options: this.cookieOptions,
       } as CookieEvent);
     } else {
-      eventDispatcher.dispatchEvent("setHeader", this, {
+      this.eventDispatcher?.dispatchEvent("setHeader", this, {
         identifier: this.dataName,
         data: identifier,
       });
@@ -79,7 +92,7 @@ export class SvelteKitExchanger extends AbstractSessionExchanger {
 
   destroyIdentifier(identifier: string): void {
     if (this.mode === "cookie") {
-      eventDispatcher.dispatchEvent("setCookie", this, {
+      this.eventDispatcher?.dispatchEvent("setCookie", this, {
         identifier,
         data: "",
         options: {

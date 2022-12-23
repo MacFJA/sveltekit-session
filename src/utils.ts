@@ -53,6 +53,7 @@ type ListenerData = {
 
 export class EventDispatcher implements EventDispatcherInterface {
   private listeners: Array<ListenerData> = [];
+  private static _main: EventDispatcherInterface = new EventDispatcher();
 
   addEventListener(
     eventName: string,
@@ -123,6 +124,10 @@ export class EventDispatcher implements EventDispatcherInterface {
     return result;
   }
 
+  static main(): EventDispatcherInterface {
+    return this._main;
+  }
+
   private removeDuplicate(): void {
     this.listeners = this.listeners.filter((listener, index, listeners) => {
       return (
@@ -138,7 +143,78 @@ export class EventDispatcher implements EventDispatcherInterface {
   }
 }
 
-export const eventDispatcher: EventDispatcherInterface = new EventDispatcher();
+export interface EventDispatcherAware {
+  getDispatcher(): EventDispatcherInterface | undefined;
+  setDispatcher(eventDispatcher: EventDispatcherInterface): void;
+}
+
+export class EventDispatcherChainer implements EventDispatcherInterface {
+  addEventForward(
+    eventName: string,
+    target: EventSource,
+    forwarder: EventSource
+  ): void {
+    this.dispatchers.forEach((dispatcher) =>
+      dispatcher.addEventForward(eventName, target, forwarder)
+    );
+  }
+
+  addEventListener(
+    eventName: string,
+    target: EventSource,
+    runner: EventRunner
+  ): void {
+    this.dispatchers.forEach((dispatcher) =>
+      dispatcher.addEventListener(eventName, target, runner)
+    );
+  }
+
+  dispatchEvent(name: string, source: EventSource, detail?: unknown): void {
+    this.dispatchers.forEach((dispatcher) =>
+      dispatcher.dispatchEvent(name, source, detail)
+    );
+  }
+
+  listenFor<T>(
+    listeners: ListenerFor | Array<ListenerFor>,
+    forCode: () => T
+  ): T {
+    if (this.dispatchers.size === 0) return forCode();
+    return this.dispatchers
+      .values()
+      .next()
+      .value.listenFor(listeners, forCode());
+  }
+
+  removeEventForward(
+    eventName: string,
+    target: EventSource,
+    forwarder: EventSource
+  ): void {
+    this.dispatchers.forEach((dispatcher) =>
+      dispatcher.removeEventForward(eventName, target, forwarder)
+    );
+  }
+
+  removeEventListener(
+    eventName: string,
+    target: EventSource,
+    runner: EventRunner
+  ): void {
+    this.dispatchers.forEach((dispatcher) =>
+      dispatcher.removeEventListener(eventName, target, runner)
+    );
+  }
+  private dispatchers: Set<EventDispatcherInterface> =
+    new Set<EventDispatcherInterface>();
+  constructor(dispatchers: Array<EventDispatcherInterface | undefined>) {
+    this.dispatchers = new Set<EventDispatcherInterface>(
+      dispatchers.filter(
+        (item) => item !== undefined
+      ) as Array<EventDispatcherInterface>
+    );
+  }
+}
 
 export type CookieEvent = {
   identifier: string;

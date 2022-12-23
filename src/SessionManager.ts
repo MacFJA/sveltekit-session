@@ -6,16 +6,27 @@ import {
 } from "./SessionExchanger";
 import {
   type ExpirableSessionStorageInterface,
-  serverMemoryStorage,
   type SessionStorageInterface,
+  ServerMemoryStorage,
 } from "./SessionStorage";
 import {
   devalueSerializer,
   type SessionSerializerInterface,
 } from "./SessionSerializer";
-import { eventDispatcher, type EventSource, type CookieEvent } from "./utils";
+import {
+  type EventSource,
+  type CookieEvent,
+  type EventDispatcherInterface,
+  EventDispatcher,
+  type EventDispatcherAware,
+  EventDispatcherChainer,
+} from "./utils";
 import type { Handle, Load } from "@sveltejs/kit";
 import type { CookieSerializeOptions } from "cookie";
+
+export const serverMemoryStorage = new ServerMemoryStorage(
+  EventDispatcher.main()
+);
 
 export type SessionLocals = {
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -38,12 +49,15 @@ export class SessionManager {
   private readonly defaultStorage: SessionStorageInterface;
   private readonly defaultSerializer: SessionSerializerInterface;
   private readonly defaultExchanger: SessionExchangerInterface;
+  private readonly eventDispatcher: EventDispatcherInterface;
 
   constructor(
     defaultStorage?: SessionStorageInterface,
     defaultSerializer?: SessionSerializerInterface,
-    defaultExchanger?: SessionExchangerInterface
+    defaultExchanger?: SessionExchangerInterface,
+    eventDispatcher?: EventDispatcherInterface
   ) {
+    this.eventDispatcher = eventDispatcher ?? EventDispatcher.main();
     this.defaultStorage = defaultStorage ?? serverMemoryStorage;
     this.defaultSerializer = defaultSerializer ?? devalueSerializer;
     this.defaultExchanger = defaultExchanger ?? new SvelteKitExchanger();
@@ -51,11 +65,32 @@ export class SessionManager {
 
   get(options: SessionOptions = {}): Session {
     const finalOptions = this.getOptions(options);
-    eventDispatcher.addEventForward("setCookie", finalOptions.storage, this);
-    eventDispatcher.addEventForward("setHeader", finalOptions.storage, this);
-    eventDispatcher.addEventForward("setCookie", finalOptions.exchanger, this);
-    eventDispatcher.addEventForward("setHeader", finalOptions.exchanger, this);
-    eventDispatcher.addEventListener(
+
+    this.wrapDispatcher(finalOptions.storage);
+    this.wrapDispatcher(finalOptions.exchanger);
+    this.wrapDispatcher(finalOptions.serializer);
+
+    this.eventDispatcher.addEventForward(
+      "setCookie",
+      finalOptions.storage,
+      this
+    );
+    this.eventDispatcher.addEventForward(
+      "setHeader",
+      finalOptions.storage,
+      this
+    );
+    this.eventDispatcher.addEventForward(
+      "setCookie",
+      finalOptions.exchanger,
+      this
+    );
+    this.eventDispatcher.addEventForward(
+      "setHeader",
+      finalOptions.exchanger,
+      this
+    );
+    this.eventDispatcher.addEventListener(
       "destroy",
       finalOptions.storage,
       (name, target, detail) => {
@@ -76,7 +111,8 @@ export class SessionManager {
     return new Session(
       identifier,
       finalOptions.storage,
-      finalOptions.serializer
+      finalOptions.serializer,
+      this.eventDispatcher
     );
   }
 
@@ -86,6 +122,24 @@ export class SessionManager {
       serializer: providedOptions.serializer ?? this.defaultSerializer,
       storage: providedOptions.storage ?? this.defaultStorage,
     };
+  }
+
+  private wrapDispatcher(object: unknown) {
+    if (
+      (object as EventDispatcherAware).getDispatcher !== undefined &&
+      (object as EventDispatcherAware).setDispatcher !== undefined
+    ) {
+      (object as EventDispatcherAware).setDispatcher(
+        new EventDispatcherChainer([
+          this.eventDispatcher,
+          (object as EventDispatcherAware).getDispatcher(),
+        ])
+      );
+    }
+  }
+
+  dispatcher(): EventDispatcherInterface {
+    return this.eventDispatcher;
   }
 }
 
@@ -116,7 +170,7 @@ export async function configuredServerHook(
     headers.push(detail);
   }
 
-  const session: Session = await eventDispatcher.listenFor(
+  const session: Session = await sessionManager.dispatcher().listenFor(
     [
       { event: "setCookie", of: sessionManager, runner: setCookies },
       { event: "setHeader", of: sessionManager, runner: setHeaders },
@@ -131,7 +185,7 @@ export async function configuredServerHook(
   (event.locals as SessionLocals).sessionId = session.getIdentifier();
   return Promise.resolve(resolve(event)).then(async (response) => {
     session.replace((event.locals as SessionLocals).session);
-    await eventDispatcher.listenFor(
+    await sessionManager.dispatcher().listenFor(
       [
         { event: "setCookie", of: session, runner: setCookies },
         { event: "setHeader", of: session, runner: setHeaders },

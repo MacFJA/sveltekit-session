@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0]
+
+### Fixed
+
+- Error "Cannot find module './utils'" ([sveltekit-cas#1])
+
+### Changed
+
+- Make the event dispatcher configurable for every class that need it
+- (dev) Update test to use SvelteKit 1.0.0
+- (dev) Tweak Rollup configuration to remove unnecessary code
+
+### Removed
+
+- Delete the `./utils` import
+
 ## [1.0.6]
 
 ### Fixed
@@ -59,10 +75,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 First version
 
-[unreleased]: https://github.com/MacFJA/sveltekit-session/compare/1.0.6...HEAD
+[unreleased]: https://github.com/MacFJA/sveltekit-session/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/MacFJA/sveltekit-session/releases/tag/1.1.0
 [1.0.6]: https://github.com/MacFJA/sveltekit-session/releases/tag/1.0.6
 [1.0.5]: https://github.com/MacFJA/sveltekit-session/releases/tag/1.0.5
 [1.0.4]: https://github.com/MacFJA/sveltekit-session/releases/tag/1.0.4
 [1.0.3]: https://github.com/MacFJA/sveltekit-session/releases/tag/1.0.3
 [1.0.2]: https://github.com/MacFJA/sveltekit-session/releases/tag/1.0.2
 [1.0.0]: https://github.com/MacFJA/sveltekit-session/releases/tag/1.0.0
+[sveltekit-cas#1]: https://github.com/MacFJA/sveltekit-cas/issues/1

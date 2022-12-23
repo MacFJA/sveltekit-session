@@ -170,6 +170,7 @@ import { sequence } from "@sveltejs/kit/hooks";
 import { sessionHook } from "@macfja/sveltekit-session";
 
 export const handle: Handle = sequence(
-  sessionHook("cookie") /* another server hook */
+  sessionHook("cookie")
+  /* another server hook */
 );
 ```

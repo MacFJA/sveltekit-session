@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import cookie, { CookieSerializeOptions } from "cookie";
-import { CookieEvent, eventDispatcher } from "./utils";
+import {
+  CookieEvent,
+  type EventDispatcherAware,
+  type EventDispatcherInterface,
+} from "./utils";
 import type {
   RedisClientOptions,
   RedisClientType,
@@ -23,7 +27,20 @@ export interface ExpirableSessionStorageInterface
   gc(): void;
 }
 
-abstract class AbstractSessionStorage implements SessionStorageInterface {
+abstract class AbstractSessionStorage
+  implements SessionStorageInterface, EventDispatcherAware
+{
+  getDispatcher(): EventDispatcherInterface | undefined {
+    return this.eventDispatcher;
+  }
+
+  setDispatcher(eventDispatcher: EventDispatcherInterface): void {
+    this.eventDispatcher = eventDispatcher;
+  }
+  private eventDispatcher: EventDispatcherInterface | undefined;
+  constructor(eventDispatcher?: EventDispatcherInterface) {
+    this.eventDispatcher = eventDispatcher;
+  }
   abstract read(identifier: string): Promise<string | null>;
 
   abstract write(identifier: string, data: string): Promise<void>;
@@ -32,7 +49,7 @@ abstract class AbstractSessionStorage implements SessionStorageInterface {
 
   destroy(identifier: string) {
     this.doDestroy(identifier);
-    eventDispatcher.dispatchEvent("destroy", this, { identifier });
+    this.getDispatcher()?.dispatchEvent("destroy", this, { identifier });
   }
 }
 
@@ -43,8 +60,12 @@ export class FileSessionStorage
   private readonly sessionPath: string;
   private readonly ttl: number;
 
-  constructor(sessionPath: string, ttl = 3600) {
-    super();
+  constructor(
+    sessionPath: string,
+    ttl = 3600,
+    eventDispatcher?: EventDispatcherInterface
+  ) {
+    super(eventDispatcher);
     this.sessionPath = sessionPath;
     this.ttl = ttl;
   }
@@ -105,10 +126,11 @@ export class ServerCookieStorage
   private readonly defaultOptions: CookieSerializeOptions;
 
   constructor(
+    eventDispatcher?: EventDispatcherInterface,
     requestCookieHeader?: string,
     defaultOptions: CookieSerializeOptions = { maxAge: ONE_WEEK, path: "/" }
   ) {
-    super();
+    super(eventDispatcher);
     this.defaultOptions = defaultOptions;
     this.requestCookieHeader = requestCookieHeader ?? "";
   }
@@ -118,7 +140,7 @@ export class ServerCookieStorage
   }
 
   doDestroy(identifier: string): void {
-    eventDispatcher.dispatchEvent("setCookie", this, {
+    this.getDispatcher()?.dispatchEvent("setCookie", this, {
       identifier,
       data: "",
       options: {
@@ -135,7 +157,7 @@ export class ServerCookieStorage
   }
 
   async write(identifier: string, data: string): Promise<void> {
-    eventDispatcher.dispatchEvent("setCookie", this, {
+    this.getDispatcher()?.dispatchEvent("setCookie", this, {
       identifier,
       data,
       options: this.defaultOptions,
@@ -160,9 +182,10 @@ export class RedisStorage
   constructor(
     redisOptions?: RedisClientOptions,
     keyPrefix = "sess_",
-    ttl = 3600
+    ttl = 3600,
+    eventDispatcher?: EventDispatcherInterface
   ) {
-    super();
+    super(eventDispatcher);
     this.keyPrefix = keyPrefix;
     this.ttl = ttl;
     this.clientOptions = redisOptions;
@@ -206,5 +229,3 @@ export class RedisStorage
     );
   }
 }
-
-export const serverMemoryStorage = new ServerMemoryStorage();

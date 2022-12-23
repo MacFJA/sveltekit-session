@@ -1,6 +1,6 @@
 {
   "name": "@macfja/sveltekit-session",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Session management for SvelteKit",
   "main": "./index.cjs",
   "module": "./index.mjs",
@@ -10,14 +10,12 @@
       "import": [
         "./index.mjs",
         "./node.mjs",
-        "./redis.mjs",
-        "./utils.mjs"
+        "./redis.mjs"
       ],
       "require": [
         "./index.cjs",
         "./node.cjs",
-        "./redis.cjs",
-        "./utils.cjs"
+        "./redis.cjs"
       ]
     },
     "./package.json": "./package.json"
@@ -57,7 +55,6 @@
   },
   "files": [
     "./index.cjs",
-    "./utils.cjs",
     "./redis.cjs",
     "./node.cjs",
     "./*.mjs",
@@ -71,7 +68,7 @@
   "homepage": "https://github.com/macfja/sveltekit-session#readme",
   "author": "MacFJA",
   "license": "MIT",
-  "types": "dist/",
+  "types": "./",
   "keywords": [
     "session",
     "svelte",
